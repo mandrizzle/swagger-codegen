@@ -131,35 +131,35 @@ open class ApiClient(val baseUrl: String) {
         headers.forEach { header -> request = request.addHeader(header.key, header.value) }
 
         val realRequest = request.build()
-        val response = client.newCall(realRequest).execute()
-
-        // TODO: handle specific mapping types. e.g. Map<int, Class<?>>
-        when {
-            response.isRedirect -> return Redirection(
-                    response.code(),
-                    response.headers().toMultimap()
-            )
-            response.isInformational -> return Informational(
-                    response.message(),
-                    response.code(),
-                    response.headers().toMultimap()
-            )
-            response.isSuccessful -> return Success(
-                    responseBody(response, accept),
-                    response.code(),
-                    response.headers().toMultimap()
-            )
-            response.isClientError -> return ClientError(
-                    response.body()?.string(),
-                    response.code(),
-                    response.headers().toMultimap()
-            )
-            else -> return ServerError(
-                    null,
-                    response.body()?.string(),
-                    response.code(),
-                    response.headers().toMultimap()
-            )
+        client.newCall(realRequest).execute().use { response ->
+            // TODO: handle specific mapping types. e.g. Map<int, Class<?>>
+            when {
+                response.isRedirect -> return Redirection(
+                        response.code(),
+                        response.headers().toMultimap()
+                )
+                response.isInformational -> return Informational(
+                        response.message(),
+                        response.code(),
+                        response.headers().toMultimap()
+                )
+                response.isSuccessful -> return Success(
+                        responseBody(response, accept),
+                        response.code(),
+                        response.headers().toMultimap()
+                )
+                response.isClientError -> return ClientError(
+                        response.body()?.string(),
+                        response.code(),
+                        response.headers().toMultimap()
+                )
+                else -> return ServerError(
+                        null,
+                        response.body()?.string(),
+                        response.code(),
+                        response.headers().toMultimap()
+                )
+            }
         }
     }
     
